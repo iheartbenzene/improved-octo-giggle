@@ -42,8 +42,14 @@ def feature_extraction(directory):
         print('>%s' % name)
     return features
 
-# set directory to begin
 directory = 'Flicker8k_Dataset'
 features = feature_extraction(directory)
 print('Features extracted: %d' % len(features))
 dump(features, open('features.pkl', 'wb'))
+
+def load_the_documents(filename):
+    file = open(filename, 'r')
+    text = file.read()
+    file.close()
+    return text
+
