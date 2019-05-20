@@ -43,7 +43,7 @@ def feature_extraction(directory):
     return features
 
 # set directory to begin
-directory = ''
+directory = 'Flicker8k_Dataset'
 features = feature_extraction(directory)
 print('Features extracted: %d' % len(features))
 dump(features, open('features.pkl', 'wb'))
