@@ -9,7 +9,7 @@ Clone the repo:
 + HTTPS: `git clone https://github.com/iheartbenzene/improved-octo-giggle.git`
 
 Install necessary packages:
-+ `cd remote-neural-networking && pip install -r requirements.txt`
++ `cd improved-octo-giggle && pip install -r requirements.txt`
 
 ##### Resources:
 
