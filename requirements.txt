@@ -1,0 +1,9 @@
+markov
+tensorflow
+keras
+numpy
+scipy
+wolframclient
+h5py
+pandas
+pyttsx
