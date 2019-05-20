@@ -14,6 +14,7 @@ Install necessary packages:
 ##### Resources:
 
 Flicker 8k Dataset: https://github.com/jbrownlee/Datasets/releases/download/Flickr8k/Flickr8k_Dataset.zip
+
 Flicker 8k text: https://github.com/jbrownlee/Datasets/releases/download/Flickr8k/Flickr8k_text.zip
 
 ##### Acknowledgements:
