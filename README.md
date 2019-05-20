@@ -1,5 +1,5 @@
 # improved-octo-giggle
-Image Caption Generator
+Image Caption Generator using CNN and RNN.
 
 ### Getting Started:
 This project uses python 3.7.x.
