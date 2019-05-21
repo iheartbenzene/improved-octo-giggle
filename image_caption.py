@@ -53,3 +53,5 @@ def load_the_documents(filename):
     file.close()
     return text
 
+filename = 'Flickr8k_text/Flicker8k.token.txt'
+document = load_the_documents(filename)
