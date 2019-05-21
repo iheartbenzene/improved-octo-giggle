@@ -4,6 +4,7 @@ import PIL
 import glob
 import shutil
 import os
+import string
 
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.layers import Dense, Dropout, LSTM, Activation, Flatten
@@ -55,3 +56,54 @@ def load_the_documents(filename):
 
 filename = 'Flickr8k_text/Flicker8k.token.txt'
 document = load_the_documents(filename)
+
+def load_image_descriptions(document):
+    maps = dict()
+    for line in document.split("\n"):
+        tokens = line.split()
+        if len(line) < 2:
+            continue
+        image_id, image_description = tokens[0], tokens[1:]
+        image_id = image_id.split('.')[0]
+        image_description = ' '.join(image_description)
+        if image_id not in maps:
+            maps[image_id] = list()
+        maps[image_id].append(image_description)
+    return maps
+
+descriptions = load_image_descriptions(document)
+
+def clean_descriptions(descriptions):
+    table = str.maketrans('', '', string.punctuation)
+    for key, description_list in descriptions.items():
+        for i in range(len(description_list)):
+            description = description_list[i]
+            description = description.split()
+            description = [word.lower() for word in description]
+            description = [s.translate() for s in description]
+            description = [word for word in description if len(word)>1]
+            description = [word for word in description if word.isalpha()]
+            description_list[i] = ' '.join(description)
+
+clean_descriptions(descriptions)
+
+def build_vocabulary(description):
+    all_descriptions = set()
+    for key in descriptions.keys():
+        [all_descriptions.update(d.split) for d in descriptions[key]]
+    return all_descriptions
+
+vocabulary = build_vocabulary(descriptions)
+
+def save_descriptions(descriptions, filename):
+    lines = list()
+    for key, description_list in descriptions.items():
+        for description in description_list:
+            lines.append(key + ' ' + description)
+    desc_data = '\n'.join(lines)
+    file = open(filename, 'w')
+    file.write(desc_data)
+    file.close()
+
+save_descriptions(descriptions, 'descriptions.txt')
+
