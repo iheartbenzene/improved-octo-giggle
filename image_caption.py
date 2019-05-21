@@ -13,7 +13,8 @@ from tensorflow.python.keras.optimizers import SGD, Adadelta, Adagrad
 from tensorflow.python.keras.utils import np_utils, generic_utils
 from tensorflow.python.keras.callbacks import EarlyStopping
 from tensorflow.python.keras.layers.advanced_activations import PReLU, LeakyReLU
-from tensorflow.python.keras.layers import Embedding, GRU, TimeDistributed, RepeatVector, Merge
+from tensorflow.python.keras.layers import Embedding, GRU, TimeDistributed, RepeatVector
+# from tensorflow.python.keras.layers import Merge
 from tensorflow.python.keras.preprocessing.text import one_hot
 from tensorflow.python.keras.preprocessing import sequence
 from tensorflow.python.keras.applications.vgg16 import VGG16, preprocess_input
@@ -33,7 +34,7 @@ def feature_extraction(directory):
     features = dict()
     for name in listdir(directory):
         filename = directory + '/' + name
-        image = load_img(filename, target_size=(256, 256))
+        image = load_img(filename, target_size=(224, 224))
         image = img_to_array(image)
         image = image.reshape((1, image.shape[0], image.shape[1], image.shape[2]))
         image = preprocess_input(image)
