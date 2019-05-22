@@ -24,7 +24,7 @@ import cv2
 import numpy as np
 
 from os import listdir
-from pickle import dump
+from pickle import dump, load
 
 def feature_extraction(directory):
     model = VGG16()
@@ -45,6 +45,8 @@ def feature_extraction(directory):
     return features
 
 directory = 'Flicker8k_Dataset'
+
+# Change directory and uncomment to extract features
 # features = feature_extraction(directory)
 # print('Features extracted: %d' % len(features))
 # dump(features, open('features.pkl', 'wb'))
@@ -54,6 +56,17 @@ def load_the_documents(filename):
     text = file.read()
     file.close()
     return text
+
+def load_sets(filename):
+    doc = load_the_documents(filename)
+    dataset = list()
+    for line in doc.split('\n'):
+        if len(line) < 1:
+            continue
+        identifier = line.split('.')[0]
+        dataset.append(identifier)
+    return set(dataset)
+    
 
 filename = 'Flicker8k_text/Flickr8k.token.txt'
 document = load_the_documents(filename)
@@ -108,3 +121,19 @@ def save_descriptions(descriptions, filename):
 
 save_descriptions(descriptions, 'descriptions.txt')
 
+def load_cleaned_descriptions(filename, dataset):
+    doc = load_the_documents(filename)
+    descriptions = dict()
+    for line in doc.split('\n'):
+        tokens = line.split()
+        image_id, image_description = tokens[0], tokens[1:]
+        if image_id in dataset:
+            if image_id not in descriptions:
+                descriptions[image_id] = list()
+            desc = 'startseq' + ' '.join(image_description) + 'endseq'
+            descriptions[image_id].append(desc)
+    return descriptions
+
+def load_features(filename, dataset):
+    all_features = load(open(filename, 'rb'))
+    
