@@ -15,7 +15,7 @@ from tensorflow.python.keras.callbacks import EarlyStopping
 from tensorflow.python.keras.layers.advanced_activations import PReLU, LeakyReLU
 from tensorflow.python.keras.layers import Embedding, GRU, TimeDistributed, RepeatVector
 # from tensorflow.python.keras.layers import Merge
-from tensorflow.python.keras.preprocessing.text import one_hot
+from tensorflow.python.keras.preprocessing.text import one_hot, Tokenizer
 from tensorflow.python.keras.preprocessing import sequence
 from tensorflow.python.keras.applications.vgg16 import VGG16, preprocess_input
 from tensorflow.python.keras.preprocessing.image import load_img, img_to_array
@@ -136,4 +136,26 @@ def load_cleaned_descriptions(filename, dataset):
 
 def load_features(filename, dataset):
     all_features = load(open(filename, 'rb'))
-    
+    features = {k: all_features[k] for k in dataset}
+    return features
+
+filename = 'Flicker8k_text/Flickr_8k.trainImages.txt'
+training = load_sets(filename)
+training_descriptions = load_cleaned_descriptions('descriptions.txt', training)
+training_features = load_features('features.pkl', training)
+
+def convert_from_dict_to_list(descriptions):
+    all_descriptions = list()
+    for key in descriptions.keys():
+        [all_descriptions.append(s) for s in descriptions[key]]
+    return all_descriptions
+
+def create_tokens(descriptions):
+    lines = convert_from_dict_to_list(descriptions)
+    tokenizer = Tokenizer()
+    tokenizer.fit_on_texts(lines)
+    return tokenizer
+
+tokenizer = create_tokens(training_descriptions)
+vocabulary_size = len(tokenizer.word_index) + 1
+print('Vocab size = %d' % vocabulary_size)
