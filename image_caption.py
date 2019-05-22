@@ -10,7 +10,7 @@ from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.layers import Dense, Dropout, LSTM, Activation, Flatten
 from tensorflow.python.keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
 from tensorflow.python.keras.optimizers import SGD, Adadelta, Adagrad
-from tensorflow.python.keras.utils import np_utils, generic_utils
+from tensorflow.python.keras.utils import np_utils, generic_utils, to_categorical
 from tensorflow.python.keras.callbacks import EarlyStopping
 from tensorflow.python.keras.layers.advanced_activations import PReLU, LeakyReLU
 from tensorflow.python.keras.layers import Embedding, GRU, TimeDistributed, RepeatVector
@@ -19,6 +19,7 @@ from tensorflow.python.keras.preprocessing.text import one_hot, Tokenizer
 from tensorflow.python.keras.preprocessing import sequence
 from tensorflow.python.keras.applications.vgg16 import VGG16, preprocess_input
 from tensorflow.python.keras.preprocessing.image import load_img, img_to_array
+from tensorflow.python.keras.preprocessing.sequence import pad_sequences
 
 import cv2
 import numpy as np
@@ -160,4 +161,20 @@ tokenizer = create_tokens(training_descriptions)
 vocabulary_size = len(tokenizer.word_index) + 1
 # print('Vocab size = %d' % vocabulary_size)
 
+def max_length(descriptions):
+    lines = convert_from_dict_to_list(descriptions)
+    return max(len(d.split()) for d in lines)
 
+def initiate_sequencing(tokenizer, max_length, descriptions, photos):
+    X1, X2, y = list(), list(), list()
+    for key, description_list in descriptions.items():
+        for desc in description_list:
+            sequencing = tokenizer.texts_to_sequences([desc])[0]
+            for i in range(1, len(sequencing)):
+                in_sequence, out_sequence = sequencing[:i], sequencing[i]
+                in_sequence = pad_sequences([in_sequence], maxlen=max_length)[0]
+                out_sequence = to_categorical([out_sequence], num_classes=vocabulary_size)[0]
+                X1.append(photos[key][0])
+                X2.append(in_sequence)
+                y.append(out_sequence)
+    return np.array(X1), np.array(X2), np.array(y)
