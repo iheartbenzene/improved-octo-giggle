@@ -45,9 +45,9 @@ def feature_extraction(directory):
     return features
 
 directory = 'Flicker8k_Dataset'
-features = feature_extraction(directory)
-print('Features extracted: %d' % len(features))
-dump(features, open('features.pkl', 'wb'))
+# features = feature_extraction(directory)
+# print('Features extracted: %d' % len(features))
+# dump(features, open('features.pkl', 'wb'))
 
 def load_the_documents(filename):
     file = open(filename, 'r')
@@ -55,7 +55,7 @@ def load_the_documents(filename):
     file.close()
     return text
 
-filename = 'Flickr8k_text/Flickr8k.token.txt'
+filename = 'Flicker8k_text/Flickr8k.token.txt'
 document = load_the_documents(filename)
 
 def load_image_descriptions(document):
@@ -81,7 +81,7 @@ def clean_descriptions(descriptions):
             description = description_list[i]
             description = description.split()
             description = [word.lower() for word in description]
-            description = [s.translate() for s in description]
+            description = [s.translate(table) for s in description]
             description = [word for word in description if len(word)>1]
             description = [word for word in description if word.isalpha()]
             description_list[i] = ' '.join(description)
@@ -91,7 +91,7 @@ clean_descriptions(descriptions)
 def build_vocabulary(description):
     all_descriptions = set()
     for key in descriptions.keys():
-        [all_descriptions.update(d.split) for d in descriptions[key]]
+        [all_descriptions.update(d.split()) for d in descriptions[key]]
     return all_descriptions
 
 vocabulary = build_vocabulary(descriptions)
