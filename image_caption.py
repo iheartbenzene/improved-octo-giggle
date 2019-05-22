@@ -158,4 +158,6 @@ def create_tokens(descriptions):
 
 tokenizer = create_tokens(training_descriptions)
 vocabulary_size = len(tokenizer.word_index) + 1
-print('Vocab size = %d' % vocabulary_size)
+# print('Vocab size = %d' % vocabulary_size)
+
+
