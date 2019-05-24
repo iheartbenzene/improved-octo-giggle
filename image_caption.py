@@ -52,13 +52,6 @@ def feature_extraction(directory):
         print('>%s' % name)
     return features
 
-directory = 'Flicker8k_Dataset'
-
-# Change directory and uncomment to extract features
-# features = feature_extraction(directory)
-# print('Features extracted: %d' % len(features))
-# dump(features, open('features.pkl', 'wb'))
-
 def load_the_documents(filename):
     file = open(filename, 'r')
     text = file.read()
@@ -75,10 +68,6 @@ def load_sets(filename):
         dataset.append(identifier)
     return set(dataset)
     
-
-filename = 'Flicker8k_text/Flickr8k.token.txt'
-document = load_the_documents(filename)
-
 def load_image_descriptions(document):
     maps = dict()
     for line in document.split("\n"):
@@ -93,9 +82,6 @@ def load_image_descriptions(document):
         maps[image_id].append(image_description)
     return maps
 
-descriptions = load_image_descriptions(document)
-info_logs('Loaded: %d' % len(descriptions))
-
 # Transform
 def clean_descriptions(descriptions):
     table = str.maketrans('', '', string.punctuation)
@@ -109,16 +95,11 @@ def clean_descriptions(descriptions):
             description = [word for word in description if word.isalpha()]
             description_list[i] = ' '.join(description)
 
-clean_descriptions(descriptions)
-
 def build_vocabulary(description):
     all_descriptions = set()
     for key in descriptions.keys():
         [all_descriptions.update(d.split()) for d in descriptions[key]]
     return all_descriptions
-
-vocabulary = build_vocabulary(descriptions)
-info_logs('Vocabulary: %d words' % len(vocabulary))
 
 def save_descriptions(descriptions, filename):
     lines = list()
@@ -129,8 +110,6 @@ def save_descriptions(descriptions, filename):
     file = open(filename, 'w')
     file.write(desc_data)
     file.close()
-
-save_descriptions(descriptions, 'descriptions.txt')
 
 def load_cleaned_descriptions(filename, dataset):
     doc = load_the_documents(filename)
@@ -150,16 +129,6 @@ def load_features(filename, dataset):
     features = {k: all_features[k] for k in dataset}
     return features
 
-filename = 'Flicker8k_text/Flickr_8k.trainImages.txt'
-training = load_sets(filename)
-info_logs('Dataset: %d' % len(training))
-
-training_descriptions = load_cleaned_descriptions('descriptions.txt', training)
-info_logs('Descriptions: %d' % len(training_descriptions))
-
-training_features = load_features('features.pkl', training)
-info_logs('Features: %d' % len(training_features))
-
 def convert_from_dict_to_list(descriptions):
     all_descriptions = list()
     for key in descriptions.keys():
@@ -171,10 +140,6 @@ def create_tokens(descriptions):
     tokenizer = Tokenizer()
     tokenizer.fit_on_texts(lines)
     return tokenizer
-
-tokenizer = create_tokens(training_descriptions)
-vocabulary_size = len(tokenizer.word_index) + 1
-info_logs('Vocab size = %d' % vocabulary_size)
 
 def max_length(descriptions):
     lines = convert_from_dict_to_list(descriptions)
@@ -195,7 +160,7 @@ def initiate_sequencing(tokenizer, max_length, descriptions, photos):
     return np.array(X1), np.array(X2), np.array(y)
 
 # Model
-def caption_model(vocabulary_size, max_length):
+def define_caption_model(vocabulary_size, max_length):
     inputs1 = Input(shape = (4096, ))
     feature_extraction1 = Dropout(0.5)(inputs1)
     feature_extraction2 = Dense(256, activation = 'relu')(feature_extraction1)
@@ -211,3 +176,57 @@ def caption_model(vocabulary_size, max_length):
     debug_logs(model.summary())
     plot_model(model, to_file='model.png', show_shapes=True)
     return model
+
+
+# Extract
+
+directory = 'Flicker8k_Dataset'
+
+features = feature_extraction(directory)
+info_logs('Features extracted: %d' % len(features))
+
+filename = 'Flicker8k_text/Flickr8k.token.txt'
+document = load_the_documents(filename)
+
+descriptions = load_image_descriptions(document)
+info_logs('Loaded: %d' % len(descriptions))
+
+filename = 'Flicker8k_text/Flickr_8k.trainImages.txt'
+training = load_sets(filename)
+info_logs('Dataset: %d' % len(training))
+
+# Transform
+
+clean_descriptions(descriptions)
+
+vocabulary = build_vocabulary(descriptions)
+info_logs('Vocabulary: %d words' % len(vocabulary))
+
+training_descriptions = load_cleaned_descriptions('descriptions.txt', training)
+info_logs('Descriptions: %d' % len(training_descriptions))
+
+tokenizer = create_tokens(training_descriptions)
+vocabulary_size = len(tokenizer.word_index) + 1
+info_logs('Vocab size = %d' % vocabulary_size)
+
+training_features = load_features('features.pkl', training)
+info_logs('Features: %d' % len(training_features))
+
+max_length = max_length(training_descriptions)
+info_logs('Description length: %d' % max_length)
+
+X1train, X2train, ytrain = initiate_sequencing(tokenizer, max_length, training_descriptions, training_features)
+
+# Model
+
+
+
+fit_model = model.fit([X1train, X2train], ytrain)
+
+# Load
+
+save_descriptions(descriptions, 'descriptions.txt')
+dump(features, open('features.pkl', 'wb'))
+
+path_to_file = 'model/model-ep{epoch:04d}-loss{loss:0.4f}-val_loss{val_loss:0.4f}.h5'
+checkpoint = ModelCheckpoint(path_to_file, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
