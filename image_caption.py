@@ -190,3 +190,8 @@ def caption_model(vocabulary_size, max_length):
     decoder1 = add([feature_extraction1, feature_extraction2])
     decoder2 = Dense(256, activation = 'relu')(decoder1)
     outputs = Dense(vocabulary_size, activation = 'softmax')(decoder2)
+    model = Model(inputs = [inputs1, inputs2], outputs = outputs)
+    model.compile(loss = 'categorical_crossentropy', optimizer = 'adam')
+    print(model.summary())
+    plot_model(model, to_file='model.png', show_shapes=True)
+    return model
