@@ -220,25 +220,25 @@ def evaluate_model(model, descriptions, images, tokenizer, max_length):
 
 # Extract
 
-directory = 'Flicker8k_Dataset'
+# directory = 'Flicker8k_Dataset'
 
 # features = feature_extraction(directory)
 # info_logs('Features extracted: %d' % len(features))
 # dump(features, open('features.pkl', 'wb'))
 
-# filename = 'Flicker8k_text/Flickr8k.token.txt'
-# document = load_the_documents(filename)
+filename = 'Flicker8k_text/Flickr8k.token.txt'
+document = load_the_documents(filename)
 
-# descriptions = load_image_descriptions(document)
-# info_logs('Loaded: %d' % len(descriptions))
+descriptions = load_image_descriptions(document)
+info_logs('Loaded: %d' % len(descriptions))
 
-# save_descriptions(descriptions, 'descriptions.txt')
+save_descriptions(descriptions, 'descriptions.txt')
 
-# Transform
+# # Transform
 
-# clean_descriptions(descriptions)
-# vocabulary = build_vocabulary(descriptions)
-# info_logs('Vocabulary: %d words' % len(vocabulary))
+clean_descriptions(descriptions)
+vocabulary = build_vocabulary(descriptions)
+info_logs('Vocabulary: %d words' % len(vocabulary))
 
 filename = 'Flicker8k_text/Flickr_8k.trainImages.txt'
 training_set = load_sets(filename)
