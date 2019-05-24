@@ -25,6 +25,14 @@ import numpy as np
 from os import listdir
 from pickle import dump, load
 
+# config
+logging.basicConfig(format='%(asctime)s - %(messsage)s', level=logging.INFO)
+info_logs = logging.info
+debug_logs = logging.debug
+warning_logs = logging.warning
+error_logs = logging.error
+critical_logs = logging.critical
+
 # Extract
 def feature_extraction(directory):
     model = VGG16()
@@ -86,7 +94,7 @@ def load_image_descriptions(document):
     return maps
 
 descriptions = load_image_descriptions(document)
-logging('Loaded: %d' % len(descriptions))
+info_logs('Loaded: %d' % len(descriptions))
 
 # Transform
 def clean_descriptions(descriptions):
@@ -110,7 +118,7 @@ def build_vocabulary(description):
     return all_descriptions
 
 vocabulary = build_vocabulary(descriptions)
-logging('Vocabulary: %d words' % len(vocabulary))
+info_logs('Vocabulary: %d words' % len(vocabulary))
 
 def save_descriptions(descriptions, filename):
     lines = list()
@@ -144,13 +152,13 @@ def load_features(filename, dataset):
 
 filename = 'Flicker8k_text/Flickr_8k.trainImages.txt'
 training = load_sets(filename)
-logging('Dataset: %d' % len(training))
+info_logs('Dataset: %d' % len(training))
 
 training_descriptions = load_cleaned_descriptions('descriptions.txt', training)
-logging('Descriptions: %d' % len(training_descriptions))
+info_logs('Descriptions: %d' % len(training_descriptions))
 
 training_features = load_features('features.pkl', training)
-logging('Features: %d' % len(training_features))
+info_logs('Features: %d' % len(training_features))
 
 def convert_from_dict_to_list(descriptions):
     all_descriptions = list()
@@ -166,7 +174,7 @@ def create_tokens(descriptions):
 
 tokenizer = create_tokens(training_descriptions)
 vocabulary_size = len(tokenizer.word_index) + 1
-logging('Vocab size = %d' % vocabulary_size)
+info_logs('Vocab size = %d' % vocabulary_size)
 
 def max_length(descriptions):
     lines = convert_from_dict_to_list(descriptions)
@@ -200,6 +208,6 @@ def caption_model(vocabulary_size, max_length):
     outputs = Dense(vocabulary_size, activation = 'softmax')(decoder2)
     model = Model(inputs = [inputs1, inputs2], outputs = outputs)
     model.compile(loss = 'categorical_crossentropy', optimizer = 'adam')
-    logging(model.summary())
+    debug_logs(model.summary())
     plot_model(model, to_file='model.png', show_shapes=True)
     return model
