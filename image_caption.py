@@ -250,11 +250,11 @@ dump(tokenizer, open('tokenizer.pkl', 'wb'))
 vocabulary_size = len(tokenizer.word_index) + 1
 info_logs('Vocab size = %d' % vocabulary_size)
 
-# training_features = load_features('features.pkl', training_set)
-# info_logs('Training features: %d' % len(training_features))
-# max_length = max_length(training_descriptions)
-# info_logs('Description length: %d' % max_length)
-# X1train, X2train, ytrain = initiate_sequencing(tokenizer, max_length, training_descriptions, training_features)
+training_features = load_features('features.pkl', training_set)
+info_logs('Training features: %d' % len(training_features))
+max_length = max_length(training_descriptions)
+info_logs('Description length: %d' % max_length)
+X1train, X2train, ytrain = initiate_sequencing(tokenizer, max_length, training_descriptions, training_features)
 
 # file_name = 'Flicker8k_text/Flickr_8k.devImages.txt'
 # test_set = load_sets(file_name)
