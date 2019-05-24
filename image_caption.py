@@ -191,6 +191,9 @@ document = load_the_documents(filename)
 descriptions = load_image_descriptions(document)
 info_logs('Loaded: %d' % len(descriptions))
 
+save_descriptions(descriptions, 'descriptions.txt')
+dump(features, open('features.pkl', 'wb'))
+
 # Transform
 
 clean_descriptions(descriptions)
@@ -228,7 +231,3 @@ checkpoint = ModelCheckpoint(path_to_file, monitor='val_loss', verbose=1, save_b
 fit_model = model.fit([X1train, X2train], ytrain, epochs=20, verbose=2, callbacks=[checkpoint], validation_data=([X1test, X2test], ytest))
 
 # Load
-
-save_descriptions(descriptions, 'descriptions.txt')
-dump(features, open('features.pkl', 'wb'))
-
