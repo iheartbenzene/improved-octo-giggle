@@ -24,6 +24,7 @@ import numpy as np
 from os import listdir
 from pickle import dump, load
 
+# Extract
 def feature_extraction(directory):
     model = VGG16()
     model.layers.pop()
@@ -85,6 +86,7 @@ def load_image_descriptions(document):
 
 descriptions = load_image_descriptions(document)
 
+# Transform
 def clean_descriptions(descriptions):
     table = str.maketrans('', '', string.punctuation)
     for key, description_list in descriptions.items():
@@ -176,6 +178,7 @@ def initiate_sequencing(tokenizer, max_length, descriptions, photos):
                 y.append(out_sequence)
     return np.array(X1), np.array(X2), np.array(y)
 
+# Model
 def caption_model(vocabulary_size, max_length):
     inputs1 = Input(shape = (4096, ))
     feature_extraction1 = Dropout(0.5)(inputs1)
@@ -185,3 +188,5 @@ def caption_model(vocabulary_size, max_length):
     sequence_embedding2 = Dropout(0.5)(sequence_embedding1)
     sequence_embedding3 = LSTM(256)(sequence_embedding2)
     decoder1 = add([feature_extraction1, feature_extraction2])
+    decoder2 = Dense(256, activation = 'relu')(decoder1)
+    outputs = Dense(vocabulary_size, activation = 'softmax')(decoder2)
