@@ -6,11 +6,17 @@ import shutil
 import os
 import string
 import logging
+import cv2
+import numpy as np
+
+from os import listdir
+from pickle import dump, load
+
+from nltk.translate.bleu_score import corpus_bleu
 
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.layers import Dense, Dropout, LSTM, Embedding, Input
 from tensorflow.python.keras.utils import to_categorical, plot_model
-from tensorflow.python.keras.callbacks import EarlyStopping
 from tensorflow.python.keras.layers.merge import add
 from tensorflow.python.keras.preprocessing.text import one_hot, Tokenizer
 from tensorflow.python.keras.preprocessing import sequence
@@ -18,12 +24,6 @@ from tensorflow.python.keras.applications.vgg16 import VGG16, preprocess_input
 from tensorflow.python.keras.preprocessing.image import load_img, img_to_array
 from tensorflow.python.keras.preprocessing.sequence import pad_sequences
 from tensorflow.python.keras.callbacks import ModelCheckpoint
-
-import cv2
-import numpy as np
-
-from os import listdir
-from pickle import dump, load
 
 # config
 logging.basicConfig(format='%(asctime)s - %(messsage)s', level=logging.INFO)
@@ -145,7 +145,14 @@ def max_length(descriptions):
     lines = convert_from_dict_to_list(descriptions)
     return max(len(d.split()) for d in lines)
 
-def initiate_sequencing(tokenizer, max_length, descriptions, photos):
+def generate_data(descriptions, images, tokenizer, max_length):
+    while 1:
+        for key, description_list in descriptions.items():
+            image = images[key][0]
+            in_image, in_sequence, out_word = initiate_sequencing(tokenizer, max_length, description_list, image)
+            yield [[in_image, in_sequence], out_word]
+
+def initiate_sequencing(tokenizer, max_length, descriptions, images):
     X1, X2, y = list(), list(), list()
     for key, description_list in descriptions.items():
         for desc in description_list:
@@ -154,7 +161,7 @@ def initiate_sequencing(tokenizer, max_length, descriptions, photos):
                 in_sequence, out_sequence = sequencing[:i], sequencing[i]
                 in_sequence = pad_sequences([in_sequence], maxlen=max_length)[0]
                 out_sequence = to_categorical([out_sequence], num_classes=vocabulary_size)[0]
-                X1.append(photos[key][0])
+                X1.append(images[key][0])
                 X2.append(in_sequence)
                 y.append(out_sequence)
     return np.array(X1), np.array(X2), np.array(y)
@@ -177,6 +184,39 @@ def define_caption_model(vocabulary_size, max_length):
     plot_model(model, to_file='model.png', show_shapes=True)
     return model
 
+def word_for_identifier(integer, tokenizer):
+    for word, index in tokenizer.word_index.items():
+        if index == integer:
+            return word
+    return None
+
+def generate_description(model, tokenizer, image, max_length):
+    in_text = 'startseq'
+    for i in range(max_length):
+        sequence = tokenizer.texts_to_sequences([in_text])[0]
+        sequence = pad_sequences([sequence], maxlen=max_length)
+        yhat = model.predict([image, sequence], verbose=0)
+        yhat = np.argmax(yhat)
+        word = word_for_identifier(yhat, tokenizer)
+        if word is None:
+            break
+        in_text += ' ' + word
+        if word == 'endseq':
+            break
+    return in_text
+
+def evaluate_model(model, descriptions, images, tokenizer, max_length):
+    actual, predicted = list(), list()
+    for key, description_list in descriptions.items():
+        yhat = generate_description(model, tokenizer, images[key], max_length)
+        references = [d.split() for d in description_list]
+        actual.append(references)
+        predicted.append(yhat.split())
+
+    debug_logs('BLEU-1: %f' % corpus_bleu(actual, predicted, weights=(1.0, 0, 0, 0)))
+    debug_logs('BLEU-2: %f' % corpus_bleu(actual, predicted, weights=(0.5, 0.5, 0, 0)))
+    debug_logs('BLEU-3: %f' % corpus_bleu(actual, predicted, weights=(0.3, 0.3, 0.3, 0)))
+    debug_logs('BLEU-4: %f' % corpus_bleu(actual, predicted, weights=(0.25, 0.25, 0.25, 0.25)))
 
 # Extract
 
@@ -186,19 +226,19 @@ directory = 'Flicker8k_Dataset'
 # info_logs('Features extracted: %d' % len(features))
 # dump(features, open('features.pkl', 'wb'))
 
-filename = 'Flicker8k_text/Flickr8k.token.txt'
-document = load_the_documents(filename)
+# filename = 'Flicker8k_text/Flickr8k.token.txt'
+# document = load_the_documents(filename)
 
-descriptions = load_image_descriptions(document)
-info_logs('Loaded: %d' % len(descriptions))
+# descriptions = load_image_descriptions(document)
+# info_logs('Loaded: %d' % len(descriptions))
 
-save_descriptions(descriptions, 'descriptions.txt')
+# save_descriptions(descriptions, 'descriptions.txt')
 
 # Transform
 
-clean_descriptions(descriptions)
-vocabulary = build_vocabulary(descriptions)
-info_logs('Vocabulary: %d words' % len(vocabulary))
+# clean_descriptions(descriptions)
+# vocabulary = build_vocabulary(descriptions)
+# info_logs('Vocabulary: %d words' % len(vocabulary))
 
 filename = 'Flicker8k_text/Flickr_8k.trainImages.txt'
 training_set = load_sets(filename)
@@ -206,28 +246,37 @@ info_logs('Dataset: %d' % len(training_set))
 training_descriptions = load_cleaned_descriptions('descriptions.txt', training_set)
 info_logs('Training descriptions: %d' % len(training_descriptions))
 tokenizer = create_tokens(training_descriptions)
+dump(tokenizer, open('tokenizer.pkl', 'wb'))
 vocabulary_size = len(tokenizer.word_index) + 1
 info_logs('Vocab size = %d' % vocabulary_size)
 
-training_features = load_features('features.pkl', training_set)
-info_logs('Training features: %d' % len(training_features))
-max_length = max_length(training_descriptions)
-info_logs('Description length: %d' % max_length)
-X1train, X2train, ytrain = initiate_sequencing(tokenizer, max_length, training_descriptions, training_features)
+# training_features = load_features('features.pkl', training_set)
+# info_logs('Training features: %d' % len(training_features))
+# max_length = max_length(training_descriptions)
+# info_logs('Description length: %d' % max_length)
+# X1train, X2train, ytrain = initiate_sequencing(tokenizer, max_length, training_descriptions, training_features)
 
-file_name = 'Flicker8k_text/Flickr_8k.devImages.txt'
-test_set = load_sets(file_name)
-info_logs('Test dataset: %d' % len(test_set))
-test_descriptions = load_cleaned_descriptions('descriptions.txt', test_set)
-info_logs('Test descriptions: %d' % len(test_descriptions))
-test_features = load_features('features.pkl', test_set)
-info_logs('Test images: %d' % len(test_features))
-X1test, X2test, ytest = initiate_sequencing(tokenizer, max_length, test_descriptions, test_features)
+# file_name = 'Flicker8k_text/Flickr_8k.devImages.txt'
+# test_set = load_sets(file_name)
+# info_logs('Test dataset: %d' % len(test_set))
+# test_descriptions = load_cleaned_descriptions('descriptions.txt', test_set)
+# info_logs('Test descriptions: %d' % len(test_descriptions))
+# test_features = load_features('features.pkl', test_set)
+# info_logs('Test images: %d' % len(test_features))
+# X1test, X2test, ytest = initiate_sequencing(tokenizer, max_length, test_descriptions, test_features)
 
-# Model
-model = define_caption_model(vocabulary_size, max_length)
-path_to_file = 'model/model-ep{epoch:04d}-loss{loss:0.4f}-val_loss{val_loss:0.4f}.h5'
-checkpoint = ModelCheckpoint(path_to_file, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
-fit_model = model.fit([X1train, X2train], ytrain, epochs=20, verbose=2, callbacks=[checkpoint], validation_data=([X1test, X2test], ytest))
+# # Model
+# model = define_caption_model(vocabulary_size, max_length)
 
-# Load
+# path_to_file = 'model/model-ep{epoch:04d}-loss{loss:0.4f}-val_loss{val_loss:0.4f}.h5'
+# checkpoint = ModelCheckpoint(path_to_file, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+# fit_model = model.fit([X1train, X2train], ytrain, epochs=20, verbose=2, callbacks=[checkpoint], validation_data=([X1test, X2test], ytest))
+
+# epochs = 20
+# steps = len(training_descriptions)
+# for i in range(epochs):
+#     generate = generate_data(training_descriptions, training_features, tokenizer, max_length)
+#     model.fit_generator(generate, epochs=1, steps_per_epoch=steps, verbose=1)
+#     model.save('model' + str(i) + '.h5')
+
+# # Load
