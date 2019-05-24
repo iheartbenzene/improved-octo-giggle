@@ -7,16 +7,16 @@ import os
 import string
 
 from tensorflow.python.keras.models import Sequential, Model
-from tensorflow.python.keras.layers import Dense, Dropout, LSTM, Activation, Input
-from tensorflow.python.keras.utils import to_categorical
+from tensorflow.python.keras.layers import Dense, Dropout, LSTM, Embedding, Input
+from tensorflow.python.keras.utils import to_categorical, plot_model
 from tensorflow.python.keras.callbacks import EarlyStopping
-from tensorflow.python.keras.layers import Embedding
 from tensorflow.python.keras.layers.merge import add
 from tensorflow.python.keras.preprocessing.text import one_hot, Tokenizer
 from tensorflow.python.keras.preprocessing import sequence
 from tensorflow.python.keras.applications.vgg16 import VGG16, preprocess_input
 from tensorflow.python.keras.preprocessing.image import load_img, img_to_array
 from tensorflow.python.keras.preprocessing.sequence import pad_sequences
+from tensorflow.python.keras.callbacks import ModelCheckpoint
 
 import cv2
 import numpy as np
