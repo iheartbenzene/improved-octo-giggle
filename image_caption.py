@@ -191,42 +191,44 @@ document = load_the_documents(filename)
 descriptions = load_image_descriptions(document)
 info_logs('Loaded: %d' % len(descriptions))
 
-filename = 'Flicker8k_text/Flickr_8k.trainImages.txt'
-training = load_sets(filename)
-info_logs('Dataset: %d' % len(training))
-
 # Transform
 
 clean_descriptions(descriptions)
-
 vocabulary = build_vocabulary(descriptions)
 info_logs('Vocabulary: %d words' % len(vocabulary))
 
-training_descriptions = load_cleaned_descriptions('descriptions.txt', training)
-info_logs('Descriptions: %d' % len(training_descriptions))
-
+filename = 'Flicker8k_text/Flickr_8k.trainImages.txt'
+training_set = load_sets(filename)
+info_logs('Dataset: %d' % len(training_set))
+training_descriptions = load_cleaned_descriptions('descriptions.txt', training_set)
+info_logs('Training descriptions: %d' % len(training_descriptions))
 tokenizer = create_tokens(training_descriptions)
 vocabulary_size = len(tokenizer.word_index) + 1
 info_logs('Vocab size = %d' % vocabulary_size)
 
-training_features = load_features('features.pkl', training)
-info_logs('Features: %d' % len(training_features))
-
+training_features = load_features('features.pkl', training_set)
+info_logs('Training features: %d' % len(training_features))
 max_length = max_length(training_descriptions)
 info_logs('Description length: %d' % max_length)
-
 X1train, X2train, ytrain = initiate_sequencing(tokenizer, max_length, training_descriptions, training_features)
 
+file_name = 'Flicker8k_text/Flickr_8k.devImages.txt'
+test_set = load_sets(file_name)
+info_logs('Test dataset: %d' % len(test_set))
+test_descriptions = load_cleaned_descriptions('descriptions.txt', test_set)
+info_logs('Test descriptions: %d' % len(test_descriptions))
+test_features = load_features('features.pkl', test_set)
+info_logs('Test images: %d' % len(test_features))
+X1test, X2test, ytest = initiate_sequencing(tokenizer, max_length, test_descriptions, test_features)
+
 # Model
-
-
-
-fit_model = model.fit([X1train, X2train], ytrain)
+model = define_caption_model(vocabulary_size, max_length)
+path_to_file = 'model/model-ep{epoch:04d}-loss{loss:0.4f}-val_loss{val_loss:0.4f}.h5'
+checkpoint = ModelCheckpoint(path_to_file, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+fit_model = model.fit([X1train, X2train], ytrain, epochs=20, verbose=2, callbacks=[checkpoint], validation_data=([X1test, X2test], ytest))
 
 # Load
 
 save_descriptions(descriptions, 'descriptions.txt')
 dump(features, open('features.pkl', 'wb'))
 
-path_to_file = 'model/model-ep{epoch:04d}-loss{loss:0.4f}-val_loss{val_loss:0.4f}.h5'
-checkpoint = ModelCheckpoint(path_to_file, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
