@@ -5,6 +5,7 @@ import glob
 import shutil
 import os
 import string
+import logging
 
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.layers import Dense, Dropout, LSTM, Embedding, Input
@@ -85,6 +86,7 @@ def load_image_descriptions(document):
     return maps
 
 descriptions = load_image_descriptions(document)
+logging('Loaded: %d' % len(descriptions))
 
 # Transform
 def clean_descriptions(descriptions):
@@ -108,6 +110,7 @@ def build_vocabulary(description):
     return all_descriptions
 
 vocabulary = build_vocabulary(descriptions)
+logging('Vocabulary: %d words' % len(vocabulary))
 
 def save_descriptions(descriptions, filename):
     lines = list()
@@ -141,8 +144,13 @@ def load_features(filename, dataset):
 
 filename = 'Flicker8k_text/Flickr_8k.trainImages.txt'
 training = load_sets(filename)
+logging('Dataset: %d' % len(training))
+
 training_descriptions = load_cleaned_descriptions('descriptions.txt', training)
+logging('Descriptions: %d' % len(training_descriptions))
+
 training_features = load_features('features.pkl', training)
+logging('Features: %d' % len(training_features))
 
 def convert_from_dict_to_list(descriptions):
     all_descriptions = list()
@@ -158,7 +166,7 @@ def create_tokens(descriptions):
 
 tokenizer = create_tokens(training_descriptions)
 vocabulary_size = len(tokenizer.word_index) + 1
-# print('Vocab size = %d' % vocabulary_size)
+logging('Vocab size = %d' % vocabulary_size)
 
 def max_length(descriptions):
     lines = convert_from_dict_to_list(descriptions)
@@ -192,6 +200,6 @@ def caption_model(vocabulary_size, max_length):
     outputs = Dense(vocabulary_size, activation = 'softmax')(decoder2)
     model = Model(inputs = [inputs1, inputs2], outputs = outputs)
     model.compile(loss = 'categorical_crossentropy', optimizer = 'adam')
-    print(model.summary())
+    logging(model.summary())
     plot_model(model, to_file='model.png', show_shapes=True)
     return model
