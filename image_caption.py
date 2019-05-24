@@ -7,14 +7,11 @@ import os
 import string
 
 from tensorflow.python.keras.models import Sequential, Model
-from tensorflow.python.keras.layers import Dense, Dropout, LSTM, Activation, Flatten
-from tensorflow.python.keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
-from tensorflow.python.keras.optimizers import SGD, Adadelta, Adagrad
-from tensorflow.python.keras.utils import np_utils, generic_utils, to_categorical
+from tensorflow.python.keras.layers import Dense, Dropout, LSTM, Activation, Input
+from tensorflow.python.keras.utils import to_categorical
 from tensorflow.python.keras.callbacks import EarlyStopping
-from tensorflow.python.keras.layers.advanced_activations import PReLU, LeakyReLU
-from tensorflow.python.keras.layers import Embedding, GRU, TimeDistributed, RepeatVector
-# from tensorflow.python.keras.layers import Merge
+from tensorflow.python.keras.layers import Embedding
+from tensorflow.python.keras.layers.merge import add
 from tensorflow.python.keras.preprocessing.text import one_hot, Tokenizer
 from tensorflow.python.keras.preprocessing import sequence
 from tensorflow.python.keras.applications.vgg16 import VGG16, preprocess_input
@@ -178,3 +175,13 @@ def initiate_sequencing(tokenizer, max_length, descriptions, photos):
                 X2.append(in_sequence)
                 y.append(out_sequence)
     return np.array(X1), np.array(X2), np.array(y)
+
+def caption_model(vocabulary_size, max_length):
+    inputs1 = Input(shape = (4096, ))
+    feature_extraction1 = Dropout(0.5)(inputs1)
+    feature_extraction2 = Dense(256, activation = 'relu')(feature_extraction1)
+    inputs2 = Input(shape = (max_length, ))
+    sequence_embedding1 = Embedding(vocabulary_size, 256, mask_zero = True)(inputs2)
+    sequence_embedding2 = Dropout(0.5)(sequence_embedding1)
+    sequence_embedding3 = LSTM(256)(sequence_embedding2)
+    decoder1 = add([feature_extraction1, feature_extraction2])
