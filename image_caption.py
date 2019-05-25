@@ -295,3 +295,10 @@ for i in range(epochs):
     generate = generate_data(training_descriptions, training_features, tokenizer, max_length)
     model.fit_generator(generate, epochs=1, steps_per_epoch=steps, verbose=1)
     model.save('model' + str(i) + '.h5')
+
+# tokenizer = load(open('tokenizer.pkl', 'rb'))
+# max_length = 35
+# model = load_model('')
+# photo = single_image_feature_extraction('')
+# description = generate_description(model, tokenizer, photo, max_length)
+# print(description)
