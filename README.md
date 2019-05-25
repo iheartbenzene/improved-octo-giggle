@@ -19,5 +19,5 @@ Flicker 8k text: https://github.com/jbrownlee/Datasets/releases/download/Flickr8
 
 ##### Acknowledgements:
 
-Jason Brownlee's datasets: 
+Jason Brownlee: 
 + https://github.com/jbrownlee/Datasets
