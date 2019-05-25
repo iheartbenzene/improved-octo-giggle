@@ -7,3 +7,6 @@ wolframclient
 h5py
 pandas
 pyttsx
+nltk
+pickle
+cv2
