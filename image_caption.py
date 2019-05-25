@@ -245,8 +245,11 @@ training_set = load_sets(filename)
 info_logs('Dataset: %d' % len(training_set))
 training_descriptions = load_cleaned_descriptions('descriptions.txt', training_set)
 info_logs('Training descriptions: %d' % len(training_descriptions))
-tokenizer = create_tokens(training_descriptions)
-dump(tokenizer, open('tokenizer.pkl', 'wb'))
+
+# tokenizer = create_tokens(training_descriptions)
+# dump(tokenizer, open('tokenizer.pkl', 'wb'))
+
+tokenizer = load(open('tokenizer.pkl', 'rb'))
 vocabulary_size = len(tokenizer.word_index) + 1
 info_logs('Vocab size = %d' % vocabulary_size)
 
