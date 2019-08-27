@@ -6,6 +6,6 @@ wolframclient==1.0.2
 h5py==2.9.0
 pandas==0.24.2
 pyttsx==1.1
-nltk==3.4
+nltk==3.4.5
 pickle==0.7.5
 cv2==1.1
