@@ -8,3 +8,5 @@ pandas
 pyttsx
 nltk
 opencv-python
+pyasn1>=0.6.2 # not directly required, pinned by Snyk to avoid a vulnerability
+wheel>=0.46.2 # not directly required, pinned by Snyk to avoid a vulnerability
